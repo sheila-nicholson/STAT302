@@ -1,49 +1,52 @@
-# History files
+# R session files
 .Rhistory
+.RData
+.Ruserdata
 .Rapp.history
 
-# Session Data files
-.RData
-.RDataTmp
-
-# User-specific files
-.Ruserdata
-
-# Example code in package build process
-*-Ex.R
-
-# Output files from R CMD build
-/*.tar.gz
-
-# Output files from R CMD check
-/*.Rcheck/
-
-# RStudio files
+# RStudio project settings
 .Rproj.user/
+*.Rproj
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
+# Build and output files
+*.o
+*.so
+*.dll
+*.exe
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
+# Package build outputs
+.Rcheck/
 
-# knitr and R markdown default cache directories
-*_cache/
-/cache/
-
-# Temporary files created by R markdown
-*.utf8.md
-*.knit.md
-
-# R Environment Variables
-.Renviron
-
-# pkgdown site
+# Generated documentation / build
 docs/
+inst/doc/
 
-# translation temp files
-po/*~
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*~
 
-# RStudio Connect folder
-rsconnect/
+# Reports / knitted outputs
+*.html
+*.pdf
+*.docx
+*.pptx
+
+# Data caches (if not meant to be versioned)
+*.rds
+*.rda
+*.RData
+.cache/
+
+# Ignore renv caches / libraries
+renv/library/
+renv/staging/
+
+# Keep the bootstrap file
+!renv/activate.R
+
+# (Optional) Ignore diagnostics / sandbox
+renv/sandbox/
+renv/settings.json
+renv/.gitignore

@@ -1,0 +1,131 @@
+---
+title: "Chapter 1 practice exercises"
+author: "Brad McNeney"
+date: '2025-01-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+* These exercises are adapted from the Stat2 course text.
+
+* If you are using Jupyter, add a chunk to your notebook 
+with the following line
+*before* you try to load `Stat2Data`.
+
+```
+install.packages("Stat2Data",repos="https://mirror.rcg.sfu.ca/mirror/CRAN/")
+```
+
+* Now load all the R packages we'll need. Remember
+to do this for every R session.
+```{r, warning=FALSE}
+library(Stat2Data)
+library(tidyverse)
+```
+
+
+## 1
+Consider a fitted regression equation $\hat{Y} = 100 + 15 X$. Which
+of the following is false?
+
+a. The fitted slope is 15.
+b. The predicted value of $Y$ when $X=0$ is 100.
+c. The predicted value of $Y$ when $X=2$ is 110.
+d. Larger values of $X$ are associated with larger values of $Y$.
+
+## 2
+Data on 116 Savannah sparrows includes measurments of weight and
+wing length. The fitted least-squares regression model is summarized
+below.
+
+```{r}
+data("Sparrows")
+lm(Weight ~ WingLength,data=Sparrows)
+```
+
+a. What is the slope of the least squares regression line?
+b. What is the intercept of the least squares regression line?
+
+## 3
+Consider the fitted regression equation $Y = 25 + 2 X$. If $x_1=13$
+and $y_1 = 50$, what is the residual for the first data point?
+
+## 4
+
+Which of the following regression assumptions does the 
+plot of residuals *versus* fitted values **not** assess?
+
+a. Linearity
+b. Constant variance
+c. Independence
+
+
+## 5
+The number of calories and number of grams of sugar per serving were 
+measured for 36 breakfast cereals. The following graph and 
+fitted least squares regression explore the relationship 
+between these variables.
+
+```{r}
+data("Cereal")
+ggplot(Cereal,aes(x=Sugar,y=Calories)) +
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+ff <- lm(Calories ~ Sugar,data=Cereal)
+ff
+```
+
+a. Which variable is considered the response in the above plot and model?
+b. Interpret the slope of the fitted model.
+c. Mueslix has 13 grams of sugar. How many calories does 
+the fitted model predict for this cereal?
+d. What is the residual for Mueslix?
+e. Based on the plot produced by the above code chunk, does
+the linear regression model appear to be a good summary of the 
+relationship between calories and sugar?
+
+## 6
+
+Type `help("SpeciesArea")` into the R console to read about the 
+dataset on islands in Southeast Asia.
+The following R code examines the relationship 
+between the area and number of 
+mammal species on the islands, both on the log-10 scale.
+
+```{r}
+data("SpeciesArea")
+SpeciesArea <- mutate(SpeciesArea,
+                      log10Area = log10(Area),log10Species=log10(Species))
+ggplot(SpeciesArea,aes(x=log10Area,y=log10Species)) + 
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+ff <- lm(log10Species ~ log10Area, data=SpeciesArea)
+ff
+```
+
+a. Interpret the slope of the fitted model.
+b. Make a plot of the residuals versus fitted values and comment 
+on the pattern.
+
+## 7
+Load the `Caterpillars` dataset into R and read its help file.
+
+a. Produce a scatterplot for predicting `WetFrass` with `Mass`. 
+b. Produce a scatterplot for predicting the log-base-10 of
+`WetFrass` with the log-base-10 of `Mass`. 
+c. Which of (a) and (b) are better summarized
+by a least squares regression?
+d. The following R code produces a scatterplot with different 
+colors for different life stages. Does the relationship
+between log-10-`WetFrass` and log-10-`Mass` look 
+consistent across the different life stages?
+
+```{r}
+data("Caterpillars")
+Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar)) +
+  geom_point() + geom_smooth()
+```

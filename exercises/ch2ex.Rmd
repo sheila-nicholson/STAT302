@@ -1,0 +1,173 @@
+---
+title: "Chapter 2 practice exercises"
+author: "Brad McNeney"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+These exercises are adapted from the the Stat2 course text.
+
+First load all the R packages we'll need. Remember to do this for every
+R session.
+
+```{r, warning=FALSE}
+library(Stat2Data)
+library(tidyverse)
+```
+
+## True/False questions
+
+Answer true or false, and if false give a reason.
+
+a.  The degrees of freedom for the model is always 1 for simple linear
+    regression.
+b.  The variability due to error (SSE) is always smaller than the
+    variation explained by the model (SSM).
+c.  As the estimated error SD increases, the prediction interval for a
+    new observation becomes narrower.
+d.  For the same value of the predictor, the 95% prediction interval for
+    a new observation is always wider than the 95% confidence interval
+    for the mean response.
+
+## 1
+
+Which of the following is a reasonable interpretation of an $r^2$ value
+of 0.49.
+
+a.  The explanatory variable explains about 1/4 of the variation in the
+    response.
+b.  The explanatory variable is significant.
+c.  The explanatory variable explains about half of the variation in the
+    response.
+d.  The response variable is significant.
+
+## 2
+
+In the first set of exercises you explored the relationship between
+sugar and calories in breakfast cereals. The following R commands show
+the scatterplot, and some results from fitting the model.
+
+```{r}
+data("Cereal")
+ggplot(Cereal,aes(x=Sugar,y=Calories)) +
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+ff <- lm(Calories ~ Sugar,data=Cereal)
+summary(ff)$coefficients
+confint(ff)
+
+# intial look at the plot, there seems to be a positive trend between sugar and 
+# calories... which makes sense logically, more sugar == more calories 
+# given the resulting p-value - 0.0013 we can say:
+# there is 
+```
+
+a.  Test the hypothesis that sugar has a linear relationship with
+    calories. Report the hypotheses, test statistics, P-value and your
+    conclusion.
+    -   null hypothesis: there is no association between sugar and
+        calories
+
+    -   alternative hypothesis: there is an association between sugar
+        and calories
+
+    -   test statistic is the t-value = 3.506949, p-value = 0.0013
+
+    -   conclusion: there is strong evidence of a linear association
+b.  Find and interpret a 95% confidence interval for the slope of this
+    regression model.
+    -   we are 95% confident that a 1 g increase in sugar is associated
+        with an increase in calories between 1 calorie and 4 calories
+
+## 3
+
+This is a continuation of the analysis of data on breakfast cereals. The
+following are the diagnostic plots we discussed in Chapter 1.
+
+```{r}
+plot(ff,which=1)
+plot(ff,which=2)
+plot(ff,which=5)
+```
+
+a.  Comment on the linear model assumption. Which of the three plots do
+    you use for this?
+b.  Comment on the assumption of constant error SD. Which of the three
+    plots do you use for this?
+c.  Comment on the assumption that the errors are normally distributed.
+    Which of the three plots do you use for this?
+d.  Do any of the cereals have leverage that stands out from the rest?
+    Which of the three plots do you use for this?
+e.  Do any of the cereals have noteworthy influence, as measured by the
+    Cook's distance. Use our rule-of-thumb from the Chapter 1 notes.
+
+## 4
+
+This is a continuation of the analysis of data on breakfast cereals.
+Recall from the Chapter 1 exercises that Mueslix has 13 grams of sugar.
+
+a.  Calculate a 95% **confidence**interval for the mean calories of
+    cereals with 13 grams of sugar. Interpret this interval.
+b.  Calculate a 95% **prediction** interval for the mean calories of
+    cereals with 13 grams of sugar. Interpret this interval.
+
+(Hint: See the chapter 2 R demo.)
+
+## 5
+
+Data on 116 Savannah sparrows includes measurements of weight and wing
+length. A scatterplot with smooth and least squares regression line is
+shown below.
+
+```{r}
+data("Sparrows")
+ggplot(Sparrows,aes(x=WingLength,y=Weight)) +
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+```
+
+a.  Test the hypothesis that wing length has a linear relationship with
+    weight. Report the hypotheses, test statistics, P-value and your
+    conclusion.
+b.  Find and interpret a 95% confidence interval for the slope of this
+    regression model.
+c.  Comment on the linear model assumption.
+d.  Comment on the assumption of constant error SD.
+e.  Comment on the assumption that the errors are normally distributed.
+f.  Do any of the sparrows have noteworthy influence, as measured by the
+    Cook's distance. Use our rule-of-thumb from the Chapter 1 supplement
+    notes.
+
+## 6
+
+Type `help("SpeciesArea")` into the R console to read about the dataset
+on islands in Southeast Asia. The following R code examines the
+relationship between the area and number of mammal species on the
+islands, both on the log-10 scale.
+
+```{r}
+data("SpeciesArea")
+SpeciesArea <- mutate(SpeciesArea,
+                      log10Area = log10(Area),log10Species=log10(Species))
+ggplot(SpeciesArea,aes(x=log10Area,y=log10Species)) + 
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+```
+
+a.  Test the hypothesis that log-10-area has a linear relationship with
+    log-10-species. Report the hypotheses, test statistics, P-value and
+    your conclusion.
+b.  Find and interpret a 95% confidence interval for the slope of this
+    regression model.
+c.  Comment on the linear model assumption.
+d.  Comment on the assumption of constant error SD.
+e.  Comment on the assumption that the errors are normally distributed.
+f.  Do any of the sparrows have noteworthy influence, as measured by the
+    Cook's distance. Use our rule-of-thumb from the Chapter 1 supplement
+    notes.

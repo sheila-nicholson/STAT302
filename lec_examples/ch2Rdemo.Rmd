@@ -1,0 +1,135 @@
+---
+title: "Chapter 2 R demo"
+author: "Brad McNeney"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## `ChildSpeaks` data
+
+```{r}
+library(Stat2Data)
+library(tidyverse)
+data(ChildSpeaks)
+```
+
+-   Now type `help(ChildSpeaks)` for information about the dataset and `View(ChildSpeaks)` to view it.
+
+```{r}
+ggplot(ChildSpeaks,aes(x=Gesell,y=Age)) +
+  geom_point() +  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE,col="red")
+```
+
+## Regression model: fit and diagnostics
+
+-   Fit the regression model and obtain a summary of the regression coefficients as follows.
+
+```{r}
+cfit <- lm(Age ~ Gesell,data=ChildSpeaks)
+summary(cfit)$coefficients
+confint(cfit,level=0.95)
+# remove extreme points
+```
+
+-   The diagnostic plots for checking (i) linear model, (ii) constant error SD, (iii) normal errors and (iv) influential observations are as follows.
+
+```{r}
+plot(cfit,which=1)
+plot(cfit,which=2)
+plot(cfit,which=5)
+```
+
+-   We can also add residuals and other diagnostic quantities to the dataset.
+
+```{r}
+ChildSpeaks <- mutate(ChildSpeaks,
+                      resid = residuals(cfit),
+                      standresid = rstandard(cfit),
+                      Studresid = rstudent(cfit),
+                      hatvals = hatvalues(cfit),
+                      CooksD = cooks.distance(cfit))
+```
+
+-   Now check your dataset View tab. Note child 18, who first spoke at age 42 months.
+-   We can extract this child from the dataset as follows.
+
+```{r}
+ChildSpeaks[18,] # [row number,]
+```
+
+-   If it is determined that child 18 is a data recording error, or should be removed for some other reason, we can refit the model on a subset of the data.
+-   One way of specifying a subset is age less than 42 months.
+
+```{r}
+data(ChildSpeaks) # fresh copy
+ChildSpeaks2 <- filter(ChildSpeaks, Gesell > 80) # also try Age < 42 - original code
+ggplot(ChildSpeaks2,aes(x=Gesell,y=Age)) +
+  geom_point() + 
+  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE,col="red")
+
+# notice how how the scatter plot smoother line (blue) suggests there is possibly 
+# a cubic releationship (bump, dip)
+# least squares regression line is almost flat --> suggests there is NOT a linear
+# trend here
+# linear model is not great, but lets proceed anyways to get the diagnostic plots
+# quiz: fit a model, 
+```
+
+-   A linear model is still not great, but let's proceed anyway.
+
+```{r}
+cfit2 <- lm(Age ~ Gesell, data=ChildSpeaks2)
+plot(cfit2,which=1)
+plot(cfit2,which=2)
+plot(cfit2,which=5)
+summary(cfit2)$coefficients
+confint(cfit2,level=0.95)
+anova(cfit2)
+# residual vs fitted - check linear model assumption
+# here again scatter plot smoother suggests a missed cubic relationship
+# residuals on the high side, the low side, the high side, the low side
+
+# Q-Q plot - check normal errors/SD assumption
+# not great, not many points on the line, systematic deviation from -1 to 0,5
+# also more extreme points to the right could suggest that the residual distribution does not have the shape of a normal distribution
+
+# Residuals vs leverage - check 
+# child 17 has a cooks distance of between 0.5 and 1 - leave that alone not greater than one so we will not worry about this data points influence 
+
+# slightly negative slope -0.01323422
+# p-value = 0.8902731 no suggestion for a linear assocation between Gessel score 
+# and age at first speaking based on the data set where we excluded the two
+# child that did not seem to belong
+
+# conclusion: there is little evidence for a linear association between Gessel score and age at first speaking
+```
+
+To report conclusions about the strength of evidence against the null hypothesis and in favour of the alternative hypothesis let's use the following rules of thumb:
+
+-   p-values less than 0.001 are **very strong** evidence
+
+-   p-values less than 0.01 and greater than 0.001 are **strong** evidence
+
+-   p-values less than 0.05 and greater than 0.01 are **good** evidence
+
+-   p-values less than 0.1 and greater than 0.05 are **some** evidence
+
+-   p-values greater than 0.1 are **little** evidence
+
+-   We wouldn't really trust predictions from this model, but for illustration let's calculate 95% confidence and prediction intervals for children with Gesell scores 80 and 100.
+
+-   We first create a "new" dataset with Gessel=80 and 100 and then ask for the predictions and intervals for this new data.
+
+```{r}
+# use our fitted model to predict age of first speaking givin the Gessel scores 80 and 100
+# notice the fitted values are very similiar bc least squares line is almost flat
+# again notice the prediction intervals are wider than confidence intervals!
+newChildSpeaks <- data.frame(Gesell = c(80,100))
+predict(cfit2,newdata=newChildSpeaks,interval = "confidence",level=0.95)
+predict(cfit2,newdata=newChildSpeaks,interval = "prediction",level=0.95)
+```

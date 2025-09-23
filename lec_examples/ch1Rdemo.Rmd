@@ -1,0 +1,225 @@
+---
+title: "Stat 302, Chapter 1 R demo"
+author: "Brad McNeney"
+output: html_document 
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## RStudio and RMarkdown–
+
+-   It is recommended that you work with R *via* RMarkdown, which allows
+    you to intersperse text and R commands. When you "knit" the
+    document, you see the text and output of your commands.
+-   Topics for getting started with RMarkdown.
+    -   Basics of RMarkdown
+    -   Code chunks
+    -   Sending code chunks to the R console
+-   I will try to give you a template file to start for all the
+    exercises.
+
+## Jupyter notebooks
+
+-   Some students prefer to use Jupyter *via* the online platform
+    <https://sfu.syzygy.ca/> for analyses. For the most part, .Rmd files
+    will look and run OK in Jupyter, but you may have to install R
+    packages such as `Stat2Data` yourself. You should be able to do this
+    by adding a code chunk with the following line to your notebook
+    somewhere *before* you try to load `Stat2Data`.
+
+```         
+install.packages("Stat2Data",repos="https://muug.ca/mirror/cran/")
+```
+
+## Data for this demo
+
+-   I'll illustrate with the `PorschePrice`, `SpeciesArea` and
+    `Caterpillars` datasets from the `Stat2Data` R package.
+
+```{r}
+library(Stat2Data)
+data("PorschePrice")
+head(PorschePrice)
+help(PorschePrice)
+data("SpeciesArea")
+head(SpeciesArea)
+help(SpeciesArea)
+data("Caterpillars")
+```
+
+## R functions
+
+-   A function has input and output.
+-   For example, the `head()` function takes a dataset as input and
+    returns a printout of the top few (by default 6) lines of the
+    dataset.
+-   Function outputs can be text printed to the R console, plots sent to
+    the Plots tab, help pages sent to the Help tab, spreadsheets that
+    open as new tabs, etc.
+    -   E.G., To see the entire dataset in spreadsheet form use
+        `View(PorschePrice)`.
+
+## Plotting data
+
+-   There is a `plot()` function in R that does high-quality graphical
+    displays of data, but the `ggplot()` function from the `ggplot2`
+    package does better.
+
+```{r}
+library(tidyverse) # includes the ggplot2 package for plotting data
+ggplot(PorschePrice,aes(x=Mileage,y=Price)) + 
+  geom_point() +
+  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+```
+
+## Adding or modifying variables
+
+-   Recall from lecture that the plot of `Species` *versus* `Area`
+    (`SpeciesArea` dataset) was not very informative.
+-   This dataset also includes the natural log of the two variables.
+-   Statisticians like natural log, but most people prefer log-base-10.
+    -   A one unit increase on the log-10 scale is a 10-fold increase on
+        the original scale.
+-   Add new variables to a dataset with the `mutate()` function (from
+    tidyverse)
+
+```{r}
+SpeciesArea <- mutate(SpeciesArea, 
+                      log10Area=log10(Area), log10Species=log10(Species))
+ggplot(SpeciesArea,aes(x=log10Area,y=log10Species)) + 
+  geom_point() + geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+```
+
+-   The `Caterpillars` dataset has a variable `Instar` that codes the
+    life stage of each caterpillar. This is a categorical variable, but
+    R thinks it is quantitative.
+-   We change to a categorical, or factor variable as follows.
+
+```{r}
+Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+```
+
+## Least squares regression
+
+-   We fit models with the `lm()` function (linear model).
+-   Models are specified by formulas with the response variable on the
+    left and the explanatory variables on the right of a tilde (`~`)
+    sign.
+-   We also need to input the dataset name.
+
+```{r}
+pfit <- lm(Price ~ Mileage, data=PorschePrice)
+pfit
+```
+
+-   The assignment `<-` saves the fitted model for later use.
+    -   The name `pfit` is arbitrary.
+    -   We'll call the saved output an "object".
+
+## Fitted model summary
+
+-   To get a basic summary of the model, just type the object name into
+    the R console.
+
+```{r}
+pfit
+```
+
+## Checking model assumptions - residuals versus fitted values
+
+```{r, fig.height=3, fig.width=5}
+plot(pfit,which=1)
+```
+
+## Checking model assumptions - Normal quantile plot
+
+```{r}
+plot(pfit,which=2)
+```
+
+## Non-linearity in a residual plot
+
+```{r}
+simdat <- function(n) {
+  x <- 3+ rnorm(n) 
+  y <- 1 + 2*x + x^2 + rnorm(n) 
+  data.frame(x=x,y=y)
+}
+plotres <- function(dat){
+  ff <- lm(y~x,data=dat) 
+  plot(ff,which=1)
+}
+
+dat <- simdat(100)
+ggplot(dat,aes(x=x,y=y)) + geom_point() + geom_smooth() +
+  geom_smooth(method="lm",se=FALSE,color="red")
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+```
+
+## Non-constant SD in a residual plot
+
+```{r}
+simdat <- function(n) {
+  x <- 3+ rnorm(n) 
+  y <- 1 + 2*x  + x* rnorm(n) 
+  data.frame(x=x,y=y)
+}
+
+dat <- simdat(100)
+ggplot(dat,aes(x=x,y=y)) + geom_point() + geom_smooth() +
+  geom_smooth(method="lm",se=FALSE,color="red")
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+
+dat <- simdat(100)
+plotres(dat)
+```
+
+## Non-normal errors in a Q-Q plot
+
+```{r}
+simdat <- function(n) {
+  x <- 3+ rnorm(n) 
+  y <- 1 + 2*x  + rexp(n) 
+  data.frame(x=x,y=y)
+}
+
+dat <- simdat(100)
+plotQQ <- function(dat){
+  ff <- lm(y~x,data=dat) 
+  plot(ff,which=2)
+}
+plotQQ(dat)
+
+dat <- simdat(100)
+plotQQ(dat)
+
+simdat <- function(n) {
+  x <- 3+ rnorm(n) 
+  y <- 1 + 2*x  - rexp(n) 
+  data.frame(x=x,y=y)
+}
+
+dat <- simdat(100)
+plotQQ(dat)
+
+dat <- simdat(100)
+plotQQ(dat)
+```

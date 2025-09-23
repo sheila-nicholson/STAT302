@@ -1,0 +1,73 @@
+---
+title: "Stat 302, Test your R installation"
+author: "Brad McNeney"
+output: html_document 
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## RStudio and RMarkdown
+
+-   It is recommended that you work with R *via* RMarkdown, which allows
+    you to intersperse text and R commands. When you "knit" the
+    document, you see the text and output of your commands.
+-   I will give you a template file to start for all the exercises.
+
+## Jupyter notebooks
+
+-   Some students prefer to use Jupyter *via* the online platform
+    <https://sfu.syzygy.ca/> for analyses. For the most part, .Rmd files
+    will look and run OK in Jupyter, but you may have to install R
+    packages such as `Stat2Data` yourself. You should be able to do this
+    by adding a code chunk with the following line to your notebook
+    somewhere *before* you try to load `Stat2Data`.
+
+```         
+install.packages("Stat2Data",repos="https://muug.ca/mirror/cran/")
+```
+
+## Data for this test
+
+-   We'll test with the `PorschePrice` dataset from the `Stat2Data` R
+    package.
+
+```{r}
+library(Stat2Data)
+data("PorschePrice")
+head(PorschePrice)
+```
+
+## Test code
+
+-   If you have installed everything correctly, you should be able to
+    run the following code chunk.
+-   To run a code chunk, you can
+    -   click the "play button" at the top-right of the chunk, or
+    -   put your cursor on the first line of code and type ctrl-Return
+        (hold the control key down and then hit the Return key) on each
+        line to run the lines one-by-one.
+
+```{r}
+library(tidyverse)
+ggplot(PorschePrice,aes(x=Mileage,y=Price)) + 
+  geom_point() +
+  geom_smooth() + 
+  geom_smooth(method="lm",se=FALSE, color="red")
+```
+
+-   If you see an error that indicates `tidyverse` or `ggplot` are
+    missing, find the `Tools -> Install Packages` menu, enter
+    `tidyverse` in the Packages text field of the pop-up window, and
+    click `Install`.
+
+## Knitting the document
+
+-   To run all code chunks and produce an html output file with all of
+    the R output, click the "knit" button in the toolbar just above the
+    contents of the file. It has an icon that looks like a ball of wool
+    with a knitting needle in it, and may also have the word "Knit"
+    beside it.
+
+-   Try knitting the document to make sure your installation is
+    complete.

@@ -3,71 +3,81 @@ title: "Chapter 1 practice exercises"
 author: "Brad McNeney"
 date: '2025-01-10'
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-* These exercises are adapted from the Stat2 course text.
+-   These exercises are adapted from the Stat2 course text.
 
-* If you are using Jupyter, add a chunk to your notebook 
-with the following line
-*before* you try to load `Stat2Data`.
+-   If you are using Jupyter, add a chunk to your notebook with the
+    following line *before* you try to load `Stat2Data`.
 
-```
+```         
 install.packages("Stat2Data",repos="https://mirror.rcg.sfu.ca/mirror/CRAN/")
 ```
 
-* Now load all the R packages we'll need. Remember
-to do this for every R session.
+-   Now load all the R packages we'll need. Remember to do this for
+    every R session.
+
 ```{r, warning=FALSE}
 library(Stat2Data)
 library(tidyverse)
 ```
 
-
 ## 1
-Consider a fitted regression equation $\hat{Y} = 100 + 15 X$. Which
-of the following is false?
 
-a. The fitted slope is 15.
-b. The predicted value of $Y$ when $X=0$ is 100.
-c. The predicted value of $Y$ when $X=2$ is 110.
-d. Larger values of $X$ are associated with larger values of $Y$.
+Consider a fitted regression equation $\hat{Y} = 100 + 15 X$. Which of
+the following is false?
+
+a.  The fitted slope is 15.
+b.  The predicted value of $Y$ when $X=0$ is 100.
+c.  The predicted value of $Y$ when $X=2$ is 110. **–\> FALSE**
+d.  Larger values of $X$ are associated with larger values of $Y$.
 
 ## 2
-Data on 116 Savannah sparrows includes measurments of weight and
-wing length. The fitted least-squares regression model is summarized
-below.
+
+Data on 116 Savannah sparrows includes measurments of weight and wing
+length. The fitted least-squares regression model is summarized below.
 
 ```{r}
 data("Sparrows")
 lm(Weight ~ WingLength,data=Sparrows)
 ```
 
-a. What is the slope of the least squares regression line?
-b. What is the intercept of the least squares regression line?
+a.  What is the slope of the least squares regression line?
+
+    **0.4674**
+
+b.  What is the intercept of the least squares regression line?
+
+    **1.3655**
 
 ## 3
-Consider the fitted regression equation $Y = 25 + 2 X$. If $x_1=13$
-and $y_1 = 50$, what is the residual for the first data point?
+
+Consider the fitted regression equation $Y = 25 + 2 X$. If $x_1=13$ and
+$y_1 = 50$, what is the residual for the first data point?
+
+**-1**
 
 ## 4
 
-Which of the following regression assumptions does the 
-plot of residuals *versus* fitted values **not** assess?
+Which of the following regression assumptions does the plot of residuals
+*versus* fitted values **not** assess?
 
-a. Linearity
-b. Constant variance
-c. Independence
-
+a.  Linearity
+b.  Constant variance
+c.  **Independence**
 
 ## 5
-The number of calories and number of grams of sugar per serving were 
-measured for 36 breakfast cereals. The following graph and 
-fitted least squares regression explore the relationship 
-between these variables.
+
+The number of calories and number of grams of sugar per serving were
+measured for 36 breakfast cereals. The following graph and fitted least
+squares regression explore the relationship between these variables.
 
 ```{r}
 data("Cereal")
@@ -78,22 +88,42 @@ ff <- lm(Calories ~ Sugar,data=Cereal)
 ff
 ```
 
-a. Which variable is considered the response in the above plot and model?
-b. Interpret the slope of the fitted model.
-c. Mueslix has 13 grams of sugar. How many calories does 
-the fitted model predict for this cereal?
-d. What is the residual for Mueslix?
-e. Based on the plot produced by the above code chunk, does
-the linear regression model appear to be a good summary of the 
-relationship between calories and sugar?
+a.  Which variable is considered the response in the above plot and
+    model?
+
+    Calories
+
+b.  Interpret the slope of the fitted model.
+
+    **The slope is 2.481. It is positive suggesting the possibility of a
+    positive association. If so, for every 1 g increase of sugar in
+    cereal, the calories in the cereal increases by 2.48.**
+
+c.  Mueslix has 13 grams of sugar. How many calories does the fitted
+    model predict for this cereal?
+
+    **119.7 calories**
+
+d.  What is the residual for Mueslix?
+
+    **Actual calories = 160, predicted calories = 119.7**
+
+    **Residual = 160 - 119.7 = 40.3**
+
+e.  Based on the plot produced by the above code chunk, does the linear
+    regression model appear to be a good summary of the relationship
+    between calories and sugar?
+
+    **No by looking at the smooth scatter function (blue line) you can
+    see there are two bumps in the data, suggesting a cubic model may
+    summarize the relationship better.**
 
 ## 6
 
-Type `help("SpeciesArea")` into the R console to read about the 
-dataset on islands in Southeast Asia.
-The following R code examines the relationship 
-between the area and number of 
-mammal species on the islands, both on the log-10 scale.
+Type `help("SpeciesArea")` into the R console to read about the dataset
+on islands in Southeast Asia. The following R code examines the
+relationship between the area and number of mammal species on the
+islands, both on the log-10 scale.
 
 ```{r}
 data("SpeciesArea")
@@ -104,28 +134,80 @@ ggplot(SpeciesArea,aes(x=log10Area,y=log10Species)) +
   geom_smooth(method="lm",se=FALSE, color="red")
 ff <- lm(log10Species ~ log10Area, data=SpeciesArea)
 ff
+plot(ff,which=1)
 ```
 
-a. Interpret the slope of the fitted model.
-b. Make a plot of the residuals versus fitted values and comment 
-on the pattern.
+a.  Interpret the slope of the fitted model.
+
+    **The slope is 0.2355. It is positive suggesting the possibility of
+    a positive association between the X and Y variables. If so, for
+    every a 1% increase in area, the number of mammal species increases
+    by about 0.236%.**
+
+My bad this is for if the y data is the only log transformed data
+
+must exponentiate the slope to make it understandable.
+exp(coef(ff)["log10Area]") = 1.265509
+
+subtract by 1 and multiply by 100 to get one unit-increase info
+
+(1.265509 - 1) \* 100 = 26.6%
+
+This says every one-unit increase in x is multiplied by about 1.266. Or
+in other words, for every one-unit increase in x, y increases by about
+26%.
+
+a.  Make a plot of the residuals versus fitted values and comment on the
+    pattern.
+
+    plot(ff,which=1)
+
+    **Based on the residuals vs fitted values the data set does not
+    appear to have a linear relationship but there are not many data
+    points. The dip of the line indicates that a higher order polynomial
+    may better fit the data set.**
 
 ## 7
+
 Load the `Caterpillars` dataset into R and read its help file.
 
-a. Produce a scatterplot for predicting `WetFrass` with `Mass`. 
-b. Produce a scatterplot for predicting the log-base-10 of
-`WetFrass` with the log-base-10 of `Mass`. 
-c. Which of (a) and (b) are better summarized
-by a least squares regression?
-d. The following R code produces a scatterplot with different 
-colors for different life stages. Does the relationship
-between log-10-`WetFrass` and log-10-`Mass` look 
-consistent across the different life stages?
+a.  Produce a scatterplot for predicting `WetFrass` with `Mass`.
+
+b.  Produce a scatterplot for predicting the log-base-10 of `WetFrass`
+    with the log-base-10 of `Mass`.
+
+c.  Which of (a) and (b) are better summarized by a least squares
+    regression?
+
+    **(b) the log transformed data**
+
+d.  The following R code produces a scatterplot with different colors
+    for different life stages. Does the relationship between
+    log-10-`WetFrass` and log-10-`Mass` look consistent across the
+    different life stages?
+
+    **The relationship does not appear to be consistent across the
+    different life stages. The relationship appears to start off cubic
+    then quadratic then more linear as you move left to right across the
+    plot.**
 
 ```{r}
 data("Caterpillars")
 Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+
+
+
+# a)
+ggplot(Caterpillars,aes(x=Mass,y=WetFrass)) +
+  geom_point() + geom_smooth() +
+  geom_smooth(method="lm", se=FALSE, color="red")
+# b) 
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass)) +
+  geom_point() + geom_smooth() +
+  geom_smooth(method="lm", se=FALSE, color="red")
+
+
+
 ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar)) +
   geom_point() + geom_smooth()
 ```

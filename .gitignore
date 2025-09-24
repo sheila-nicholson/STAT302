@@ -28,7 +28,7 @@ inst/doc/
 *~
 
 # Reports / knitted outputs
-*.html
+
 *.pdf
 *.docx
 *.pptx

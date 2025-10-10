@@ -13,6 +13,7 @@
 *.so
 *.dll
 *.exe
+*.html
 
 # Package build outputs
 .Rcheck/

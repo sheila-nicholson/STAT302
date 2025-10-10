@@ -1,0 +1,145 @@
+---
+title: "Chapter 3 R demo 1"
+author: "Brad McNeney"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load data
+
+```{r, warning=FALSE, message=FALSE}
+library(Stat2Data)
+library(tidyverse)
+data(Caterpillars)
+data(SpeciesArea)
+```
+
+-   Remember that you can type `help("Caterpillars")` or
+    `help("SpeciesArea")` for information about these datasets and
+    `View(Caterpillars)` or `View(SpeciesArea)` to view them.
+
+## Multiple regression for the Caterpillars data
+
+-   We will do a regression of `LogMass` on `LogWetFrass` and `Fgp`.
+-   consider we could do one line for red data one line for blue data
+    -   BUT THIS IS NOT THE MODEL DISCUSSED IN LECTURE
+    -   add this to code to see:
+        -   geom_smooth(method = "lm")
+-   for the model we fit we would expect the red line and red line to
+    run parallel, always at the same distance apart
+    -   in this example the distance between the lines should be:
+
+        ```         
+        0.596424
+        ```
+
+```{r}
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Fgp)) + geom_point() # + geom_smooth(method = "lm")
+```
+
+-   Fit a regression model for the Caterpillars data that includes an
+    effect for `Fgp` as follows.
+
+```{r}
+cfit <- lm(LogWetFrass ~ LogMass + Fgp,data=Caterpillars)
+```
+
+-   Extract the coefficients table from the model summary:
+
+```{r}
+summary(cfit)$coefficients
+```
+
+-   The full model summary includes the following model summaries:
+    -   The `Residual standard error` is the estimate
+        $\sqrt{SSE/(n-k-1)}$ of the error SD in the model.
+    -   The `F statistic` and p-value are from the F test.
+    -   `Multiple R-squared` is the $R^2$.
+
+```{r}
+summary(cfit)
+```
+
+-   Other "extractor" functions we discussed for linear regression work
+    the same:
+-   residual vs fitted looks slightly better when we include free growth
+    period (Fgp)
+-   something going on with Q-Q plot, shows normal dist from -1 upwards,
+    residuals too low at -4, heavy left tail for that residual
+    distribution
+-   Cook's distance is gud (nothing greater than 1)
+
+```{r}
+confint(cfit,level=0.95)
+plot(cfit,which=1) 
+plot(cfit,which=2)
+plot(cfit,which=5)
+Caterpillars <- mutate(Caterpillars,residuals=residuals(cfit))
+```
+
+-   Another useful extractor function is `predict`.
+    -   We used this in Chapter 2 to get predictions at new points plus
+        confidence/prediction intervals.
+    -   By default, `predict()` returns the fitted values, $\hat{y}$,
+        for all the observed data points. This can be useful for
+        plotting the fitted model.
+    -   We use `geom_line()` but modify the context: for the line map
+        the $\hat{y}$s to the y-axis of the plot (but use the same x's
+        as for the points).
+    -   Verify that the vertical distance between the two lines is equal
+        to the `Fgp` coefficient $0.59642$; e.g., at `LogMass`=0.
+
+#predict(cfit) is all of the predicted y hat values for each of the
+caterpillars
+
+#geom_line(aes(y=yhats) create lines using the y hat values (i.e. the
+predicted LogWetFrass values)
+
+```{r}
+Caterpillars <- mutate(Caterpillars,yhats=predict(cfit))
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Fgp)) + 
+  geom_point() + geom_line(aes(y=yhats))
+```
+
+## Multiple regression for the SpeciesArea dataset
+
+```{r}
+ggplot(SpeciesArea,aes(x=logArea,y=Species)) + geom_point() + geom_smooth()
+```
+
+-   A cubic polynomial might fit. Let's compare this to the scatterplot
+    smoother.
+
+CUBIC THINK BUMP DIP OR DIP BUMP
+
+#ggplot(SpeciesArea,aes(x=logArea,y=Species)) + geom_point() +
+geom_smooth()
+
+–\> fitter smoother fn
+
+#ggplot(SpeciesArea,aes(x=logArea,y=Species)) + geom_point() +
+geom_smooth(method="lm",formula=y\~poly(x,3),color="red")
+
+--\> fit with 3rd degree polynomial
+
+y = b0 + b1\*x + b2\*x\^2
+
+```{r}
+ggplot(SpeciesArea,aes(x=logArea,y=Species)) + geom_point() + 
+  geom_smooth() + geom_smooth(method="lm",formula=y~poly(x,3),color="red")
+```
+
+-   Fit the cubic polynomial to the data.
+    -   More on polynomial regression in Section 3.4 of the text.
+-   multiple regression can be used to fit cubics
+
+```{r}
+sfit <- lm(Species ~ poly(logArea,3),data=SpeciesArea)
+summary(sfit)
+```

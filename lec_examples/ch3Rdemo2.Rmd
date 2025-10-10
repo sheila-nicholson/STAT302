@@ -1,0 +1,238 @@
+---
+title: "Chapter 3, R demo 2"
+author: "Brad McNeney"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Confounding demo
+
+-   Simulate some data to illustrate confounding.
+-   The explanatory variable of interest is $X_1$ and the extraneous
+    variable is $X_2$.
+
+```{r}
+set.seed(1)
+X2 <- c(rep(0,50),rep(1,50))
+X1 <- c(rnorm(50,mean=-1),rnorm(50,mean=1))
+Y <- rnorm(100,mean=5+X1-5*X2)
+dat <- data.frame(Y,X1,X2)
+```
+
+-   To be a confounder, $X_2$ must be associated with both $Y$ and
+    $X_1$.
+
+```{r}
+cor(dat)
+```
+
+-   Fit models with and without $X_2$.
+
+```{r}
+summary(lm(Y~X1,data=dat))$coefficients
+summary(lm(Y~X1+X2,data=dat))$coefficients
+abs(-0.326 - 0.998)/abs(0.998) * 100 # 133 percent change
+```
+
+-   Now visualize the data to see why the absence of the confounder
+    gives a misleading estimate of the relationship between $X_2$ and
+    $Y$.
+
+-   this plot tells us that X2 has a strong effect on Y
+
+    -   if you fix X1 and take the distance between the two lines
+
+-   strong correlation between X1 and X2
+
+-   can think of this plot as pulling apart correlation between X1 and Y
+    (up and down), and between X2 and Y (left and right)
+
+-   if you did least squares regression on the data without considering
+    X2 you would expect the resulting line to have a negative slope –\>
+    dramatic change!!!
+
+    -   ignoring X2 gives us the wrong conclusion of X1 effect on Y
+
+-   hierarchy check if:
+
+    -   modifier
+    -   confounder
+
+```{r}
+library(tidyverse)
+dat <- mutate(dat,X2 = factor(X2))
+ggplot(dat,aes(y=Y,x=X1,color=X2)) + 
+  geom_point() +
+  geom_smooth(method="lm")
+```
+
+## The `Caterpillars` data
+
+```{r}
+library(Stat2Data)
+data(Caterpillars)
+```
+
+-   Type `help(Caterpillars)` for information about the dataset and
+    `View(Caterpillars)` to view it.
+
+## Multiple linear regression with the `Caterpillars` data
+
+-   Fit the regression model with interaction between `LogMass` and
+    `Fgp`.
+-   The model is specified by the "formula" `LogWetFrass ~ LogMass*Fgp`,
+    which translates to fitting
+
+$$
+{\rm LogWetFrass} = \beta_0 + \beta_1 {\rm LogMass} + 
+\beta_2 {\rm FgpY} +  \beta_3 {\rm LogMass}\times {\rm FgpY} + \epsilon.
+$$
+
+where `FgpY` is a "dummy variable" coded as 1 for yes and 0 for no.
+
+-   \* different intercepts and slopes
+
+-   \+ different intercepts
+
+-   start with \* and then we will deem which is appropriate
+
+-   mutate(Caterpillars,yhats_int=predict(cfit_int))
+
+    -   adding y hats to model so we can plot the two separate lines
+
+-   geom_line(aes(y=yhats_int))
+
+    -   draw the lines
+
+```{r}
+cfit_int <- lm(LogWetFrass ~ LogMass * Fgp,data=Caterpillars)
+summary(cfit_int)$coefficients
+Caterpillars <- mutate(Caterpillars,yhats_int=predict(cfit_int))
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Fgp)) +
+  geom_point() + geom_line(aes(y=yhats_int))
+```
+
+-   The model diagnostic plots are obtained as before.
+    -   Still not great - QQ plot seems to have a trend
+    -   no influential observations
+
+```{r}
+plot(cfit_int,which=1)
+plot(cfit_int,which=2)
+plot(cfit_int,which=5)
+```
+
+-   To improve the fit we could try using the life stage variable
+    `Instar`.
+-   `Instar` is a categorical variable coded from 1 to 5. Will be
+    interpreted as numeric in R, but we want it to be a "factor" for
+    modelling.
+    -   Instar = factor(Instar)
+    -   replace numeric variable with a factor/categorical variable
+
+```{r}
+Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+```
+
+```{r}
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar)) +
+  geom_point() + 
+  geom_smooth() + 
+  geom_smooth(method="lm")
+```
+
+-   Fit the regression model with "main effects" for `LogMass` and
+    `Instar` and obtain a summary of the regression coefficients as
+    follows.
+
++only allows fo different intercepts
+
+```{r}
+ff <- lm(LogWetFrass ~ LogMass + Instar,data=Caterpillars)
+summary(ff)$coefficients
+confint(ff,level=0.95)
+```
+
+-   The model is specified by the formula
+    `LogWetFrass ~ LogMass + Instar`, which translates to fitting
+
+$$
+{\rm LogWetFrass} = \beta_0 + \beta_1 {\rm LogMass} + 
+\beta_2 {\rm Instar2} + \ldots + \beta_5 {\rm Instar5} + \epsilon.
+$$
+
+-   The variable `Instar2` takes value 1 if category 2 and 0 otherwise.
+
+-   The variables `Instar3`, ..., `Instar5` are analogous.
+
+-   R creates these "dummy" variables for us because `Instar` is a
+    factor.
+
+-   To add interaction between `LogMass` and `Instar`, use `*`.
+
+```{r}
+ff <- lm(LogWetFrass ~ LogMass * Instar,data=Caterpillars)
+summary(ff)$coefficients
+```
+
+-   **Exercise:** Do the diagnostic plots for the model fit above. Does
+    the QQ-plot look any better with this model than the one with `Fgp`?
+
+-   For predictions we need to specify values of **both** explanatory
+    variables.
+
+    -   Make sure the variable names in your new dataset match those in
+        the formula **exactly**.
+
+-   create new dataset for prediction intervals
+
+    -   nn \<- data.frame(LogMass=0,Instar="4")
+
+    -   bc instar is categorical must "4"
+
+```{r}
+nn <- data.frame(LogMass=0,Instar="4")
+predict(ff,newdata=nn,interval="confidence")
+```
+
+-   What about different lines for each *combination* of `Instar` and
+    `Fgp`?
+
+```{r}
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar,shape=Fgp)) +
+  geom_point() + 
+  geom_smooth(method="lm")
+```
+
+-   statistical interaction between all three variables:
+
+    -   lm(LogWetFrass \~ LogMass \* Instar \* Fgp,data=Caterpillars)
+
+    -   baseline group: fgp = No, instar = "1"
+
+    -   
+
+```{r}
+ffFgp <- lm(LogWetFrass ~ LogMass * Instar * Fgp,data=Caterpillars)
+summary(ffFgp)$coefficients
+```
+
+```{r}
+plot(ffFgp,which=1)
+plot(ffFgp,which=2)      #still have a heavy left tail :()
+```
+
+-   We can get quite creative with the multiple regression models we
+    fit, but how do we know how complicated to make the model?
+    -   We will study methods to test subsets of predictors in Section
+        3.6, and more on model selection in Chapter 4.
+
+```{r}
+anova(ff,ffFgp)
+```

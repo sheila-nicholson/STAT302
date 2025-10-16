@@ -1,0 +1,333 @@
+---
+title: "Chapter 3, exercise set 1"
+author: "Brad McNeney"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE,message=FALSE)
+```
+
+```{r}
+library(Stat2Data)
+library(tidyverse)
+```
+
+
+## 1
+
+A regression model was fit to the breakfast cereals data using
+$X_1=$Sugar and $X_2=$Fiber to predict $Y=$Calories. The 
+fitted model is summarized below.
+
+```{r}
+data("Cereal")
+ff <- lm(Calories ~ Sugar + Fiber, data=Cereal)
+summary(ff)$coefficients
+```
+
+a. How many calories would you predict for Mueslix, which has
+13 grams of sugar and 3 grams of fiber per serving?
+
+b. Frosted Flakes has 1 gram of fiber, 11 grams of sugar and 110 calories
+per serving. Compute the redisual for Frosted Flakes.
+
+c. Interpret the coefficient of Fibre in the above model.
+
+## 2
+
+True or false, and if false, explain why:
+
+a. For a multiple regression problem, adding explanatory
+variables to the model decreases the coefficient values
+for explanatory variables already in the model.
+b. Residuals in a multiple regression are 
+defined as the observed minus fitted values.
+c. The least squares estimates of coefficients in 
+a multiple linear regression only make sense if the
+errors are normally distributed.
+
+## 3
+
+Suppose you are interested in predicting the price (`Price`) of used cars
+with the exlanatory variables current mileage (`Mileage`) and year of
+manufacture (`Year`). 
+
+a. Do you think `Year` and `Mileage` are positively or 
+negatively correlated? Explain.
+
+b. For a fixed `Year`, would you expect `Mileage` to 
+be positively or negatively correlated with `Price`.
+
+## 4
+
+Read the help page for the `RailsTrails` dataset to see a description of the variables.
+Note: The help page says that the variable `Distance` is in feet,
+but it is actually in miles.
+
+```{r}
+data("RailsTrails")
+# help("RailsTrails")
+ggplot(RailsTrails,aes(y=Adj2007,x=SquareFeet,color=Distance)) +
+  geom_point() + geom_smooth()
+```
+
+(a) The following R code fits a multiple linear regression 
+with `Adj2007` as the response variable, and `Distance` and 
+`SquareFeet` as explanatory variables with a
+statistical interaction between the two. State the
+linear model being fit. 
+
+
+
+
+```{r}
+ff <- lm(Adj2007 ~ SquareFeet*Distance,data=RailsTrails)
+```
+
+(b) 
+
+Examine the following regression diagnostic plots and 
+comment on  the regression assumptions.
+
+```{r}
+plot(ff,which=1)
+plot(ff,which=2)
+```
+
+
+(c) In terms of the model from part (a), state 
+the null hypothesis of no interaction between `SquareFeet` and
+`Distance`. Based on the computer output below,
+report the test statistic and p-value for 
+inference of interaction and state your conclusion.
+
+```{r}
+summary(ff)$coefficients
+```
+
+
+(d) Interpret the estimate of the statistical interaction term
+in the above model. Focus on how `Distance` modifies the 
+effect of `SquareFeet` on `Adj2007`. (Hint: In the chapter 3 notes,
+treat `SquareFeet` as the $X_1$ variable and `Distance` as the 
+$X_2$ variable. What is the interpretation of $\beta_3$?)
+
+(e) Interpret the 95% confidence interval for the interaction term
+shown in the following output.
+
+```{r}
+confint(ff)
+```
+
+
+## 5 
+Read the help page for `HousesNY` to see a description of the variables.
+
+```{r}
+data("HousesNY")
+# help("HousesNY)
+ggplot(HousesNY,aes(x=Size,y=Price,color=Beds)) + 
+  geom_point() + geom_smooth()
+```
+
+(a) State a multiple linear regression 
+with `Price` as the response variable, and `Size` and 
+`Beds` as explanatory variables with a
+statistical interaction between the two. Fit the model 
+and report the coefficients table from the model summary.
+
+**Fitting**
+
+```{r}
+fit1 <- lm(Price ~ Size*Beds,data=HousesNY)
+fit2 <- lm(Price ~ Size+Beds,data=HousesNY)
+fit3 <- lm(Price ~ Size,data=HousesNY)
+```
+
+
+
+(b) 
+In terms of the model from part (a), state 
+the null hypothesis of no interaction between `Size` and
+`Beds`. Report the test statistic and p-value for 
+inference of interaction and state your conclusion.
+comment on  the regression assumptions.
+
+(c) Fit models with (i) `Size` and `Beds` as predictors and (ii)
+`Size` as the only predictor. Compare the estimates of the `Size`
+effect in the two models. Does `Beds` confound the effect
+of `Size` on `Price`?
+
+(d)
+For the model (c)(i) create a plot of residuals versus fitted values and a Q-Q plot. Comment on the model assumptions. (Hint: In the Q-Q plot
+the rediduals of largest magnitude appear to be smaller than under a normal 
+distribution. What does this say about the tails of the
+residual distribution?)
+
+(e)
+Interpret the effect of `Size` on `Price` in the model that includes
+`Beds`.
+
+(f) 
+Construct 95% confidence intervals for the coefficients
+in the model from (c)(i). Interpret the confidence interval
+for the `Size` variable.
+
+(g)
+Construct a 95% prediction interval for the price of a 
+house in rural NY of 2000 square feet with 3 bedrooms.
+
+
+## 6 
+Read the help page for the `Diamonds` data for 
+a description of the variables.
+
+```{r}
+data("Diamonds")
+# help("Diamonds")
+ggplot(Diamonds,aes(y=TotalPrice,x=Carat,color=Clarity)) +
+  geom_point() + geom_smooth(method="lm")
+```
+
+(a)
+Fit a model with `TotalPrice` as the response and `Carat` and `Clarity`
+as explanatory variables, with interaction between the two. Notice
+that `Clarity` is a categorical variable. Report the coefficients table.
+
+(b) From the model in (a) construct a 95% prediction interval for 2 carat diamond 
+with clarity IF. (Hint: Take your new
+data to be `data.frame(Carat=2,Clarity="IF")`)
+
+## 7
+Load the `SpeciesArea` data and add some variables to it for
+fitting a cubic model. Also load the `car` package for
+its `vif()` function.
+
+```{r}
+data("SpeciesArea")
+SpeciesArea <- mutate(SpeciesArea, log10Area = log10(Area),
+                      log10Area2 = log10Area^2, log10Area3 = log10Area^3,
+                      log10Areap1 = poly(log10Area,3)[,1],
+                      log10Areap2 = poly(log10Area,3)[,2],
+                      log10Areap3 = poly(log10Area,3)[,3])
+library(car)
+```
+
+The variables `log10Areap1`, `log10Areap2` and
+`log10Areap3` are orthogonal polynomial terms.
+You do not need to understand the details of how they
+were created.
+
+(a) Fit the cubic model for `Species` using `log10Area`, 
+`log10Area2` and `log10Area3` and save your results
+in an object called `fit1`. Print the summary of 
+regression coefficients (`summary(fit1)$coefficients`)
+and use the `vif()` function (`vif(fit1)`) to get
+the VIFs of each explanatory variable.
+Also use `fitted(fit1)` to see the fitted values ($\hat{y}$'s). 
+
+(b) Repeat part (a) using the orthogonal polynomial terms
+`log10Areap1`, `log10Areap2` and `log10Areap3` instead of `log10Area`, 
+`log10Area2` and `log10Area3`.
+
+(c) Compare the VIFs of the two models. Which model is preferred
+in terms of stability of estimates?
+
+(d) Verify that the fitted values are the same in parts (a) and (b).
+This tells us that we've fit the same model in two ways.
+
+## 8, Caterpillars
+
+* This is a worked example (with solutions).
+
+```{r}
+data("Caterpillars")
+ggplot(Caterpillars,aes(x=Intake,y=LogWetFrass,color=LogMass)) + 
+  geom_point() + geom_smooth()
+# Linear seems unlikely, but we will fit linear for this
+# demonstration. Later in Chapter 3 we will fit quadratic in Intake.
+
+ff <- lm(LogWetFrass ~ Intake*LogMass,data=Caterpillars)
+summary(ff)$coefficients
+plot(ff,which=1)
+
+with(Caterpillars,summary(Intake))
+with(Caterpillars,summary(LogMass))
+
+confint(ff)
+
+```
+
+* The intake main effect describes a regression of log-wet-frass on 
+intake for caterpillars of log-mass zero, which is mass 1 gram. 
+    * For caterpillars of mass one gram, 
+    a one gram increase in intake is estimated to change 
+    log-wet-frass by 0.275 units on average. 
+    * The fact that the response
+    is on the log scale makes interpretation difficult. Averages on 
+    the log scale are geometric means, which few people understand.
+* The interaction describes a change in the slope. It is OK to just
+say that each 10-fold increase in mass (1-unit change in log mass)
+decreases this slope by 0.17. 
+   * We are 95% confident that a 10-fold increase in caterpillar mass reduces the slope by between 0.10 and 0.24.
+
+## 9, Diamonds
+
+* This is a worked example (with solutions).
+
+* In the diamonds data the effect of carat on price appears
+to be non-linear.
+
+```{r}
+data("Diamonds")
+ggplot(Diamonds,aes(x=Carat,y=TotalPrice,color=Depth)) +
+  geom_point() + geom_smooth()
+ff <- lm(TotalPrice ~ Carat*Depth,data=Diamonds)
+plot(ff,which=1) # linear not good -- const error SD not good 
+```
+
+* Again, the model appears to need a quadratic (power 2) term in 
+the explanatory variable of interest, but we will hold off on 
+doing so for a minute.
+
+```{r}
+summary(ff)$coefficients
+```
+
+* The coefficients look a bit odd, with a main effect that appears
+to suggest that carat has a **negative** effect on price. 
+However, we need to remember that the main effect
+is for depth of zero, which doesn't exist. Depth ranges from 
+58.2 to 79.2 with a median of 62.
+
+```{r}
+with(Diamonds,summary(Depth))
+```
+
+* Lets interpret the effect of carat for a typical (median) value
+of depth. The slope for depth of 62 is $-11827 + 62*408.4 = 13494$.
+    * For a typical depth of 62%, a one-carat increase in size
+    is estimated to change the price by $13,494. (One carat 
+    is a large change in diamond size, so we could also 
+    say that, for a typical depth of 62%, a one-tenth-carat increase in size
+    is estimated to change the price by $1,349.)
+    
+```{r}
+confint(ff)
+```
+
+
+* What about the quadratic trend in carat?
+
+```{r}
+ff <- lm(TotalPrice ~ poly(Carat,2)*Depth,data=Diamonds)
+plot(ff,which=1) # better on the trend, 
+                  # still some suggestion of increasing error SD
+summary(ff)$coefficients
+ff2 <- lm(TotalPrice ~ poly(Carat,2)+Depth,data=Diamonds)
+anova(ff,ff2) # See section 3.6
+```
+
+* There is weaker evidence of interaction between carat and 
+depth when we include the quadratic terms in carat.

@@ -1,0 +1,241 @@
+---
+title: "Chapter 3, exercise set 2"
+author: "Brad McNeney"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE,message=FALSE)
+```
+
+```{r}
+library(Stat2Data)
+library(tidyverse)
+```
+
+
+
+## Exercise 1
+Load the `SpeciesArea` data and add some variables to it for
+fitting a cubic model. Also load the `car` package for
+its `vif()` function.
+
+```{r}
+data("SpeciesArea")
+SpeciesArea <- mutate(SpeciesArea, log10Area = log10(Area),
+                      log10Area2 = log10Area^2, log10Area3 = log10Area^3,
+                      log10Areap1 = poly(log10Area,3)[,1],
+                      log10Areap2 = poly(log10Area,3)[,2],
+                      log10Areap3 = poly(log10Area,3)[,3])
+library(car)
+```
+
+The variables `log10Areap1`, `log10Areap2` and
+`log10Areap3` are orthogonal polynomial terms.
+You do not need to understand the details of how they
+were created.
+
+(a) Fit the cubic model for `Species` using `log10Area`, 
+`log10Area2` and `log10Area3` and save your results
+in an object called `fit1`. Print the summary of 
+regression coefficients (`summary(fit1)$coefficients`)
+and use the `vif()` function (`vif(fit1)`) to get
+the VIFs of each explanatory variable.
+Also use `fitted(fit1)` to see the fitted values ($\hat{y}$'s). 
+
+(b) Repeat part (a) using the orthogonal polynomial terms
+`log10Areap1`, `log10Areap2` and `log10Areap3` instead of `log10Area`, 
+`log10Area2` and `log10Area3`.
+
+(c) Compare the VIFs of the two models. Which model is preferred
+in terms of stability of estimates?
+
+(d) Verify that the fitted values are the same in parts (a) and (b).
+This tells us that we've fit the same model in two ways.
+
+## Exercise 2
+Load the `Diamonds` data and read its help file for 
+a description of the variables. The following R 
+code does a scatterplot with separate linear regression
+lines for the different values of the categorical
+variable `Clarity`.
+
+```{r}
+data(Diamonds)
+ggplot(Diamonds,aes(y=TotalPrice,x=Carat,color=Clarity)) +
+  geom_point() + geom_smooth(method="lm")
+```
+
+(a)
+Fit a model with `TotalPrice` as the response and `Carat` and `Clarity`
+as explanatory variables, with interaction between the two.
+Save your fitted model in an object `fit.full`.
+
+(b) Now fit a model with `TotalPrice` as the response and `Carat` and `Clarity`
+as explanatory variables, but **without** interaction between the two.
+Save this fitted model in an object called `fit.red`.
+
+(c) Use `anova(fit.red,fit.full)` to 
+perform a multiple-partial F-test of the no-interaction hypothesis.
+    (i) From the computer output, identify the SSE from the full and 
+    reduced models, and the number of added terms from the reduced
+    to the full model. 
+    (ii) Calculate the numerator and denominator
+    of the F-statistic and verify that their ratio is as
+    reported in the table of output. 
+    (iii) What are the numerator and denominator degrees of freedom
+    for the F-statistic?
+    (iv) Report the p-value of the test of no interaction. 
+    (v) What do you conclude?
+
+## Exercise 3
+Caterpillars with interaction between polynomials in `LogMass` and Instar.
+The following scatterplot of the Caterpillars data suggests that
+the relationship between `LogWetFrass` and `LogMass` is not 
+linear within `Instar` categories. There is a suggestion 
+from the scatterplot smoothers of cubic polynomials within each 
+`Instar` category. 
+
+```{r}
+data("Caterpillars")
+Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar)) +
+  geom_point() + geom_smooth()
+```
+
+The following plot shows the fitted cubic polynomials, which 
+you can see are quite close to the scatterplot smooths.
+
+```{r}
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=Instar)) +
+  geom_point() + geom_smooth(method="lm",formula=y~poly(x,3))
+```
+
+
+(a) The following R code fits least squares regression with 
+`LogWetFrass` as the response. The explanatory variables
+are a polynomial of degree 3 (i.e., a cubic)
+in `LogMass`, the categorical variable `Instar` and 
+statistical interactions between the two. 
+Fit the model on your computer and print out the coefficients 
+table.
+
+```{r}
+fit.p3.inter <- lm(LogWetFrass ~ poly(LogMass,3)*Instar,data=Caterpillars)
+```
+
+
+(b) There are two model reductions we might consider: (i) remove 
+the interaction terms, or (ii) simplify the cubic polynomial in 
+`LogMass` to a quadratic polynomial. Fit the two reduced 
+models needed for the two possible model reductions
+and report the p-values from the two F-tests.
+(Hint: `poly(LogMass,2)` is a quadratic polynomial.)
+
+(c) We'll use the model saved in `fit.p3.inter` as our final model. 
+    (i) Obtain predictions for `LogMass = 1` and `Instar="1"` and for
+    `LogMass=1` and `Instar="3"`. 
+    (ii) Comment on the plausibility of
+    these two predictions. 
+    (iii) What is the problem that these two predictions
+    illustrate? (Hint: `LogMass=1` appears in the dataset, but is
+    it a reasonable value when `Instar` is 1 or 3?)
+
+## Exercise 4
+Load the `Tadpoles` data from `Stat2Data` and read its help file.
+The following fits a least squares regression of `GutLength`
+on `Body`, `Treatment` and `MountpartDamage`, plus 
+interactions between all pairs of explanatory variables and 
+what's called a three-way interaction between all three
+variables (like we considered for `LogMass`, `Instar` and `Fgp` in the 
+computer demo).
+
+```{r}
+data("Tadpoles")
+f1 <- lm(GutLength ~ Body*Treatment*MouthpartDamage,data=Tadpoles)
+```
+
+
+(a) Fit the above model on your computer and print a summary
+of the regression coefficients. 
+The term labeled `Body:TreatmentControl:MouthpartDamage` 
+is the three-way interaction that allows the 
+two-way interactions between pairs of variables
+to differ by the value of the third variable. For
+example, we allow the interaction between `Body` and `MouthpartDamage`
+to differ by `Treatment`.
+
+(b) Fit a reduced model that includes only the main effects
+for `Body`, `Treatment` and `MouthpartDamage`. Perform an
+F-test for this model reduction. 
+    (i) What are the four terms from the model in part (a) that 
+    are being removed?
+    (ii) What is the numerator of the F-statistic?
+    (iii) What is the p-value for the test?
+    (iv) What do you conclude about the need for interaction terms
+    in the model?
+
+
+## Exercise 5, with solutions
+The `Diamonds` data we have been working with so far is a small
+subset of a larger `diamonds` dataset (from the `gglot2` package) 
+that has data on 53940 diamonds.
+Load the `diamonds` (small d) data and read its help file for 
+a description of the variables. The following R 
+code does a scatterplot with separate  scatterplot smooths
+for the different values of the categorical
+variable `clarity`. (The points are made semi-transparent
+with the `alpha=.2` -- there are so many observations in 
+this dataset that we need to )
+
+```{r}
+data(diamonds)
+ggplot(diamonds,aes(y=price,x=carat,color=clarity)) +
+  geom_point(alpha=.2) + geom_smooth()
+```
+
+(a)
+Fit a model with `price` as the response, a cubic polynomial
+in `carat` and interaction with `clarity`.
+Save your fitted model in an object `fit.full`.
+
+(b) Now fit a model with `price` as the response , a cubic
+polynomial in `carat`, main effects for `clarity`, but no interaction.
+Save this fitted model in an object called `fit.red`.
+
+(c) Use `anova(fit.red,fit.full)` to 
+perform a multiple-partial F-test of the no-interaction hypothesis.
+    (i) From the computer output, identify the SSE from the full and 
+    reduced models, and the number of added terms from the reduced
+    to the full model. 
+    (ii) Calculate the numerator and denominator
+    of the F-statistic and verify that their ratio is as
+    reported in the table of output. You will see small differences
+    due to round-off error.
+    (iii) What are the numerator and denominator degrees of freedom
+    for the F-statistic?
+    (iv) Report the p-value of the test of no interaction. 
+    (v) What do you conclude?
+
+*Solutions*
+
+```{r}
+fit.full <- lm(price ~ poly(carat,3)*clarity,data=diamonds)
+fit.red <- lm(price ~ poly(carat,3) + clarity, data=diamonds)
+anova(fit.red,fit.full)
+```
+
+(i) The SSE from the full model is 5.87$\times 10^{10}$ and 
+the SSE from the reduced model is 8.21$\times 10^{10}$. There are 
+21 terms added to the reduced model.
+(ii) The numerator of the F-statistic is 
+`(8.21e10  - 5.87e10)/21 = 1114285714`; or you can use the 
+extra SS in the table to obtain `2.337e10/21 = 1112857143`.
+The denominator is `5.87e10/53908 =  1088892`. Their ratio is
+about 1114285714/1088892 = 1023. The difference between this number
+and the F-statistic in the table is due to round-off error in 
+our calculations.
+(iii) The df are 21 and 53908.
+(iv) The p-value is less than 0.001.
+(v) We conclude that clarity modifies the cubic trend of price
+as a function of carat.

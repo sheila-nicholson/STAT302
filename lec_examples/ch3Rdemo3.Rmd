@@ -1,0 +1,171 @@
+---
+title: "Chapter 3 demo 3"
+author: "Brad McNeney"
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE,message=FALSE)
+```
+
+```{r,warning=FALSE}
+library(Stat2Data)
+library(tidyverse)
+```
+
+## Polynomial models and VIFs
+
+This part of the demo is related to question 1 on chapter 3 exercise set
+2. Load the `SpeciesArea` data and add some variables to it for fitting
+a cubic model. Also load the `car` package for its `vif()` function.
+
+```{r}
+data("SpeciesArea")
+SpeciesArea <- mutate(SpeciesArea,log10Area=log10(Area))
+ggplot(SpeciesArea,aes(x=log10Area, y=Species)) + geom_point() +
+  geom_smooth()
+SpeciesArea <- mutate(SpeciesArea, log10Area = log10(Area),
+                      log10Area2 = log10Area^2, log10Area3 = log10Area^3,
+                      log10Areap1 = poly(log10Area,3)[,1],
+                      log10Areap2 = poly(log10Area,3)[,2],
+                      log10Areap3 = poly(log10Area,3)[,3])
+library(car)
+```
+
+The variables `log10Areap1`, `log10Areap2` and `log10Areap3` are called
+orthogonal polynomial terms. Though not as straightforward as the three
+cubic terms `log10Area1`, `log10Area2` and log10Area3\` they can also be
+used to fit cubic polynomials.
+
+```{r}
+coefs <- c(1,-1,1)
+coefs <- c(1,1,1)
+coefs <- c(-1,1,-1)
+coefs <- c(140,50,21)
+SpeciesArea <- mutate(SpeciesArea,
+            cub=coefs[1]*log10Areap1+coefs[2]*log10Areap2+coefs[3]*log10Areap3)
+ggplot(SpeciesArea,aes(x=log10Area)) +
+  geom_line(aes(y=cub),color="red")
+```
+
+-   We can use the cubic polynomials in a model fit. The individual
+    explanatory variables have been constructed to be uncorrelated, so
+    that the VIFs are 1 (why?).
+
+```{r}
+fit2 <- lm(Species ~ log10Areap1+log10Areap2+log10Areap3,data=SpeciesArea)
+summary(fit2)$coefficients
+vif(fit2)
+```
+
+-   In practice we use a short-cut to fit polynomials.
+
+```{r}
+fit2 <- lm(Species ~ poly(log10Area,3),data=SpeciesArea)
+summary(fit2)$coefficients
+```
+
+-   We can easily fit higher-order polynomials, if necessary.
+
+```{r}
+fit3 <- lm(Species ~ poly(log10Area,6),data=SpeciesArea)
+summary(fit3)$coefficients
+```
+
+-   In the extreme, we can fit a model with as many terms as there are
+    data points!
+
+```{r}
+n <- nrow(SpeciesArea)
+fit4 <- lm(Species ~ poly(log10Area,n-1),data=SpeciesArea)
+summary(fit4)
+SpeciesArea <- mutate(SpeciesArea,fit=predict(fit4))
+ggplot(SpeciesArea,aes(x=log10Area,y=Species)) + geom_point() +
+  geom_line(aes(y=fit))
+```
+
+-   But does such a model make good predictions?
+
+```{r}
+newdat <- data.frame(log10Area = 1:6)
+round(predict(fit4,newdata=newdat))
+```
+
+## Model reductions with the Caterpillars data
+
+We will fit a model for `LogWetFrass` using `Instar` and `Fgp`. The
+following scatterplot of the Caterpillars data suggests that the
+relationship between `LogWetFrass` and `LogMass` is modified by both
+`Fgp` and `Instar`.
+
+```{r}
+data("Caterpillars")
+Caterpillars <- mutate(Caterpillars,Instar = factor(Instar))
+ggplot(Caterpillars,aes(x=LogMass,y=LogWetFrass,color=interaction(Instar,Fgp)))  +  geom_point() + geom_smooth(method="lm")
+```
+
+The following R code fits least squares regression with `LogWetFrass` as
+the response and explanatory variables `LogMass`, `Fgp` and `Instar`,
+with all three pair-wise interactions between `LogWetFrass`, `Instar`
+and `Fgp`.
+
+```{r}
+fit.full <- lm(LogWetFrass ~ LogMass*Instar*Fgp,data=Caterpillars)
+summary(fit.full)$coefficients
+```
+
+-   The model seems to fit quite well, but there are still some extreme
+    residuals.
+
+```{r}
+plot(fit.full,which=1)
+plot(fit.full,which=2)
+```
+
+## Model reductions
+
+-   We can consider removing the three-way interaction term:
+
+```{r}
+fit.red <- lm(LogWetFrass ~ LogMass*Instar+LogMass*Fgp+Instar*Fgp,data=Caterpillars)
+summary(fit.red)$coefficients
+anova(fit.red,fit.full)
+```
+
+-   There is little evidence for the three-way interaction, so we can
+    make the model with only two-way interactions our new model and try
+    to remove two-way interactions.
+    -   Notice the hierarchy of interactions in our model reduction
+        strategy.
+
+```{r}
+fit.red1<- lm(LogWetFrass ~ LogMass*Instar+LogMass*Fgp,data=Caterpillars)
+anova(fit.red1,fit.red)
+```
+
+```{r}
+fit.red2 <- lm(LogWetFrass ~ LogMass*Instar+Instar*Fgp,data=Caterpillars)
+anova(fit.red2,fit.red)
+```
+
+```{r}
+fit.red3 <- lm(LogWetFrass ~ LogMass*Fgp+Instar*Fgp,data=Caterpillars)
+anova(fit.red3,fit.full)
+```
+
+-   We should use the model with all two-way interactions.
+
+-   Now obtain predictions for `LogMass = -1`, `Instar="3"` and
+    `Fgp="Y"` along with a 95% confidence interval.
+
+```{r}
+nn <- data.frame(LogMass=-1,Instar="3",Fgp="Y")
+predict(fit.full,newdata=nn,interval="confidence")
+```
+
+-   Interpret: We are 95% confident that the average log-wet frass for
+    caterpillars of mass 0.1 grams in life stage 3 and the free growth
+    period is between $-1.7$ and $-1.5$ (no units).

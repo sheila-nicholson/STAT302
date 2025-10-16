@@ -118,7 +118,8 @@ summary(fit.full)$coefficients
 ```
 
 -   The model seems to fit quite well, but there are still some extreme
-    residuals.
+    residuals
+    -   specifically in the Q-Q plot
 
 ```{r}
 plot(fit.full,which=1)
@@ -128,6 +129,12 @@ plot(fit.full,which=2)
 ## Model reductions
 
 -   We can consider removing the three-way interaction term:
+-   full model: LogMass \* Instar \* Fgp
+    -   reduced model:
+
+        ```         
+        LogMass * Instar + LogMass * Fgp + Instar * Fgp
+        ```
 
 ```{r}
 fit.red <- lm(LogWetFrass ~ LogMass*Instar+LogMass*Fgp+Instar*Fgp,data=Caterpillars)
@@ -135,6 +142,7 @@ summary(fit.red)$coefficients
 anova(fit.red,fit.full)
 ```
 
+-   
 -   There is little evidence for the three-way interaction, so we can
     make the model with only two-way interactions our new model and try
     to remove two-way interactions.
@@ -146,15 +154,24 @@ fit.red1<- lm(LogWetFrass ~ LogMass*Instar+LogMass*Fgp,data=Caterpillars)
 anova(fit.red1,fit.red)
 ```
 
+-   summarize from this we would not remove Instar\*Fgp
+
+-   low p-value = there is strong evidence that we should not remove the
+    interaction that we did
+
 ```{r}
 fit.red2 <- lm(LogWetFrass ~ LogMass*Instar+Instar*Fgp,data=Caterpillars)
 anova(fit.red2,fit.red)
 ```
 
+-   summarize from this we would not remove the LogMass\*Fgp
+
 ```{r}
 fit.red3 <- lm(LogWetFrass ~ LogMass*Fgp+Instar*Fgp,data=Caterpillars)
 anova(fit.red3,fit.full)
 ```
+
+-   therefore we should remove LogMass \* Instar
 
 -   We should use the model with all two-way interactions.
 
